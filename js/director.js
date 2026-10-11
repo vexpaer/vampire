@@ -40,7 +40,7 @@ const Director = {
     this.phase = this.phaseAt(t);
     const inten = this.bossStarted ? 4 : t < 30 ? 0 : t < 90 ? 1 : t < 180 ? 2 : t < 300 ? 3 : 4;
     if (inten !== this.intensity && !this.bossStarted) { this.intensity = inten; Sfx.Music.setIntensity(inten); }
-    this.mood = approach(this.mood, this.moodTarget, dt * 0.35);
+    this.mood = approach(this.mood, this.moodTarget, dt * (G.victory ? 1.6 : 0.35));
 
     while (this.eventIdx < EVENTS.length && EVENTS[this.eventIdx].t <= t) this.runEvent(EVENTS[this.eventIdx++]);
 
@@ -111,6 +111,7 @@ const Director = {
     if (World.blocked(x, y, 4)) return null;
     const P = G.player;
     if (dist(x, y, P.x, P.y) < 28) return null;
+    if (G.enemies.length >= MAX_ENEMIES + 30) return null;
     const e = spawnEnemy(type, x, y, { emerge, force: true });
     if (e) addFx({ type: 'rise', x, y, life: emerge + 0.2, max: emerge + 0.2 });
     return e;

@@ -96,6 +96,7 @@ const UI = {
     Sfx.setVolumes(G.settings.master, G.settings.music, G.settings.sfx);
     Progress.data.lastChar = c.id; Progress.save();
     this.newAch = [];
+    this.bannerQ.length = 0;
     this.hide('title');
     this.el.touch.hidden = !Input.isTouch;
     document.body.classList.add('fade');
@@ -115,6 +116,7 @@ const UI = {
   },
 
   toTitle() {
+    Sfx.resume();
     Sfx.Music.stop();
     G.resultShown = false;
     G.player = null;
@@ -145,7 +147,7 @@ const UI = {
       kicker.textContent = 'Reliquary opened';
       title.textContent = evo ? 'An Ascension Awaits' : 'Claim a Relic';
     } else {
-      kicker.textContent = 'Level ' + P.level;
+      kicker.textContent = 'Level ' + (P.level - G.levelQueue);
       title.textContent = 'Choose a Boon';
     }
     const wrap = this.el.cards;
@@ -218,6 +220,7 @@ const UI = {
   },
 
   reroll() {
+    if (this.opts.length === 1 && this.opts[0].kind === 'evolution') return;
     if (G.rerolls <= 0 || this.choosing || performance.now() < this.lockUntil - 200) { Sfx.play('deny'); return; }
     G.rerolls--;
     this.opts = buildOptions(this.mode);

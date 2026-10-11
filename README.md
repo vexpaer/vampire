@@ -63,7 +63,12 @@ js/render.js       low-res world renderer, light map, HUD
 js/ui.js           title, level-up cards, pause, results, banners
 js/main.js         input, persistence, main loop, autopilot
 tools/playtest.cjs headless autopilot playtest
+tools/build-single.cjs  single-file bundler
 ```
+
+## Single-file build
+
+`node tools/build-single.cjs` writes `dist/the-last-bell.html`, one self-contained file with every script, style and font inlined, handy for sharing or offline play. Add `--fragment` for a variant without the `<html>/<head>/<body>` skeleton, for hosts that supply their own.
 
 ## Automated playtesting
 
@@ -77,4 +82,4 @@ URL options: `bot=1` autopilot, `speed=N` simulation steps per frame, `pick=rand
 
 ## Credits
 
-Fonts: [Jacquarda Bastarda 9](https://github.com/scfried/soft-type-jacquarda-bastarda) and [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans), both under the SIL Open Font License (see `assets/fonts`). Everything else is original to this project.
+Fonts: [Jacquarda Bastarda 9](https://github.com/scfried/soft-type-jacquarda-bastarda), [Pixelify Sans](https://github.com/eifetx/Pixelify-Sans) and the digits of [Tiny5](https://github.com/Gissio/font_tiny5), all under the SIL Open Font License (see `assets/fonts`). Everything else is original to this project.

@@ -15,6 +15,7 @@ const R = {
     this.ctx = this.canvas.getContext('2d', { alpha: false });
     this.ui = document.getElementById('ui');
     this.uctx = this.ui.getContext('2d');
+    if ('textRendering' in this.uctx) this.uctx.textRendering = 'optimizeSpeed'; // no ligatures
     this.light = makeCanvas(16, 16);
     this.lctx = this.light.getContext('2d');
     this.bellCyan = silhouette(Assets.icons.bellIcon, COLORS.cyan);
@@ -1119,8 +1120,14 @@ const R = {
     c.beginPath(); c.arc(bx, by, ring + u, 0, TAU); c.fill();
     c.strokeStyle = '#2b2733'; c.lineWidth = 2 * u;
     c.beginPath(); c.arc(bx, by, ring - u, 0, TAU); c.stroke();
-    c.strokeStyle = full ? COLORS.cyan : COLORS.cyanDim;
+    c.strokeStyle = full || G.bellPulse > 0 ? COLORS.cyan : COLORS.cyanDim;
     c.beginPath(); c.arc(bx, by, ring - u, -Math.PI / 2, -Math.PI / 2 + TAU * res); c.stroke();
+    if (G.bellPulse > 0 && !full) {
+      c.globalAlpha = G.bellPulse / 0.35;
+      c.lineWidth = u;
+      c.beginPath(); c.arc(bx, by, ring + (1 - G.bellPulse / 0.35) * 8 * u, 0, TAU); c.stroke();
+      c.globalAlpha = 1;
+    }
     const bsz = 32 * u; // the 16px icon at 2 logical pixels per icon pixel
     const bx0 = Math.round(bx - bsz / 2), by0 = Math.round(by - bsz / 2 + 2 * u);
     c.drawImage(this.bellDim, bx0, by0, bsz, bsz);

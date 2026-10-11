@@ -59,7 +59,7 @@ const Input = {
     if (down && e.repeat) { if (G.state === 'levelup' && /Arrow/.test(c)) UI.levelKey(c); return; }
     this.keys[c] = down;
     if (!down) return;
-    Sfx.init();
+    if (G.state !== 'paused') Sfx.init();
     switch (G.state) {
       case 'play':
         if (c === 'ShiftLeft' || c === 'ShiftRight' || c === 'KeyK') this.queued.dash = true;
@@ -90,6 +90,9 @@ const Input = {
     if (c === 'KeyM' && G.state !== 'title') {
       G.settings.master = G.settings.master > 0 ? 0 : 0.8;
       Sfx.setVolumes(G.settings.master, G.settings.music, G.settings.sfx);
+      const slider = document.getElementById('set-master');
+      if (slider) slider.value = G.settings.master;
+      UI.notice(G.settings.master > 0 ? 'Sound on' : 'Muted', 'bone', 1.2);
       Progress.save();
     }
   },
@@ -135,6 +138,7 @@ const Debug = {
     this.start = parseFloat(q.get('start') || '0');
     this.char = q.get('char');
     this.randomPicks = q.get('pick') === 'random';
+    this.god = q.get('god') === '1';
     this.log = [];
     window.__G = G;
     window.__debug = this;
@@ -144,7 +148,7 @@ const Debug = {
     let vx = 0, vy = 0;
     for (const e of G.enemies) {
       const dx = P.x - e.x, dy = P.y - e.y, d2 = dx * dx + dy * dy;
-      const reach = e.boss ? 110 : e.elite ? 90 : 70;
+      const reach = e.boss ? 60 : e.elite ? 80 : 70;
       if (d2 > reach * reach || e.emerge > 0) continue;
       const w = (e.boss ? 6 : e.elite ? 3 : 1) / Math.max(30, d2);
       vx += dx * w; vy += dy * w;
@@ -291,7 +295,7 @@ function boot() {
   };
   // Give the pixel fonts a moment to arrive; never block on them.
   const fonts = document.fonts ? Promise.race([
-    Promise.all([document.fonts.load('16px "Pixelify Sans"'), document.fonts.load('16px "Jacquarda Bastarda 9"')]),
+    Promise.all([document.fonts.load('16px "Pixelify Sans"', 'Aa0123456789'), document.fonts.load('16px "Jacquarda Bastarda 9"')]),
     new Promise(r => setTimeout(r, 1200)),
   ]) : Promise.resolve();
   fonts.catch(() => {}).then(go);

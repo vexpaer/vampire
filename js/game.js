@@ -85,8 +85,11 @@ function onScreen(x, y, m = 20) {
 }
 function addNumber(x, y, val, kind) {
   if (!G.settings.numbers) return;
+  // Under heavy load keep only the numbers that matter most.
   const active = G.numbers.countActive();
-  if (active > 70 && kind !== 'crit' && kind !== 'player' && kind !== 'heal') return;
+  const vital = kind === 'player' || kind === 'heal';
+  if (!vital && active > 34 && kind !== 'crit') return;
+  if (!vital && active > 60) return;
   const n = G.numbers.get();
   if (!n) return;
   n.x = x + rand(-3, 3); n.y = y; n.vy = -38; n.t = 0; n.kind = kind;
@@ -181,7 +184,8 @@ function recomputeStats() {
 function newRun(charId) {
   const char = CHARACTERS.find(c => c.id === charId) || CHARACTERS[0];
   World.generate((Math.random() * 1e9) | 0);
-  G.time = 0; G.uid = 1; G.levelQueue = 0;
+  G.time = 0; G.uid = 1; G.levelQueue = 0; G.pendingChest = 0; G.pendingEvolution = null; G.resultShown = false;
+  G.shatterT = G.harvestT = G.heavyT = -9; G.bellPulse = 0;
   G.enemies.length = 0;
   G.projs.clear(); G.shots.clear(); G.gems.clear(); G.numbers.clear(); Parts.clear();
   for (const k of ['pickups', 'echoes', 'sweeps', 'rings', 'sigils', 'pools', 'fx', 'corpses', 'telegraphs', 'tolls', 'lights']) G[k].length = 0;
@@ -197,7 +201,7 @@ function newRun(charId) {
   const P = makePlayer(char);
   G.player = P;
   recomputeStats();
-  P.weapons.push({ id: char.weapon, lv: 1, t: 0.4 });
+  P.weapons.push({ id: char.weapon, lv: char.startLevel || 1, t: 0.4 });
   G.cam.x = P.x - G.view.w / 2; G.cam.y = P.y - G.view.h / 2;
   Director.reset();
   G.state = 'play';
@@ -333,7 +337,7 @@ function ringBell(free) {
 
 function hurtPlayer(dmg, sx, sy) {
   const P = G.player;
-  if (P.inv > 0 || P.dashT > 0 || P.dead || G.state !== 'play' || G.victory) return;
+  if (P.inv > 0 || P.dashT > 0 || P.dead || G.state !== 'play' || G.victory || Debug.god) return;
   const amount = Math.max(1, Math.round(dmg - P.s.armor));
   P.hp -= amount;
   P.inv = 0.6;
@@ -727,8 +731,10 @@ function damageEnemy(e, amount, o = {}) {
 const SERRATED_SRC = new Set(['dagger', 'ossuary', 'scythe', 'harvestMoon', 'grave', 'titansRequiem']);
 
 function explodeAt(x, y, r, dmg, o = {}) {
-  const n = queryEnemies(x, y, r);
-  const list = QBUF.slice(0, n);
+  // Reached from inside other QBUF loops (crit shatter, harvest bursts), so it
+  // must not write to the shared buffer.
+  const list = [];
+  G.grid.query(x, y, r, list, 256);
   for (const e of list) {
     if (e === o.exclude) continue;
     damageEnemy(e, dmg, { src: o.src, noCrit: o.noCrit, kb: o.kb || 60, fromX: x, fromY: y, bleed: o.bleed });
@@ -1087,6 +1093,7 @@ function updateEchoes(dt) {
         e.done = true;
         const gain = e.v * P.s.resGain;
         P.res = Math.min(100, P.res + gain);
+        G.bellPulse = 0.35;
         Sfx.play('echo');
         emitSparks(P.x, P.y - 6, 6, COLORS.cyan, 50);
       }
@@ -1307,6 +1314,7 @@ function updateGame(dt) {
   World.stainsThisFrame = 0;
   if (G.buffs.frenzy > 0) G.buffs.frenzy -= dt;
   if (G.buffs.fury > 0) G.buffs.fury -= dt;
+  if (G.bellPulse > 0) G.bellPulse -= dt;
   G.hints.t += dt;
 
   updatePlayer(dt);

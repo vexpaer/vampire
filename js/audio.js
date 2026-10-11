@@ -426,6 +426,8 @@ const Sfx = (() => {
     schedule() {
       if (!ctx || this.mode === 'off') return;
       const spb = 60 / this.bpm() / 4;
+      // After a throttled background tab, resync instead of firing a burst of notes.
+      if (this.nextTime < ctx.currentTime - 0.2) this.nextTime = ctx.currentTime + 0.05;
       while (this.nextTime < ctx.currentTime + 0.14) {
         this.playStep(this.step, this.nextTime - ctx.currentTime);
         this.nextTime += spb;

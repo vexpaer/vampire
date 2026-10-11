@@ -29,7 +29,7 @@ const Boss = {
     const P = G.player;
     let x = clamp(P.x, 200, ARENA.w - 200), y = P.y - 120;
     if (y < ARENA.top + 30) y = P.y + 120;
-    const hp = 12000 + P.level * 300;
+    const hp = 11000 + P.level * 280;
     const e = spawnEnemy('archbishop', x, y, { force: true, emerge: 2.2 });
     e.hp = e.maxHp = hp;
     this.e = e; G.boss = e;
@@ -74,6 +74,7 @@ const Boss = {
     if (this.phase === 1 && e.hp < e.maxHp * 0.5 && this.state !== 'transition') {
       this.phase = 2;
       this.phaseT = 0;
+      this.bag = [];
       this.setState('transition', 2.6);
       G.shots.clear();
       G.telegraphs = G.telegraphs.filter(t => t.owner !== e && !t.boss);
@@ -101,11 +102,12 @@ const Boss = {
         if (this.stateT <= 0) this.setState('idle', 0.6);
         return out;
       case 'idle': {
-        const want = 125;
-        const k = (d - want) / want;
-        out.mx = (dx / d) * k + (-dy / d) * 0.35; out.my = (dy / d) * k + (dx / d) * 0.35;
+        // Hover within melee reach and circle; never back away from the player.
+        const want = this.phase === 2 ? 52 : 60;
+        const k = Math.max(0, (d - want) / want);
+        out.mx = (dx / d) * k + (-dy / d) * 0.45; out.my = (dy / d) * k + (dx / d) * 0.45;
         const l = Math.hypot(out.mx, out.my) || 1; out.mx /= l; out.my /= l;
-        out.spd = (this.phase === 2 ? 58 : 44) * Math.min(1, Math.abs(k) * 2 + 0.3);
+        out.spd = (this.phase === 2 ? 58 : 44) * Math.min(1, Math.abs(k) * 2 + 0.3) + Math.max(0, d - want) * 0.5;
         // Glide in fast when the player has run far away, so the duel never stalls.
         if (d > 170) out.spd += (d - 170) * 1.1;
         if (this.stateT <= 0) this.startAttack(this.nextAttack());
@@ -183,7 +185,7 @@ const Boss = {
         e.dmg = 28;
         this.chargeLeft -= sp * dt;
         if (Math.random() < dt * 40) addFx({ type: 'after', boss: true, x: e.x, y: e.y, face: e.face, life: 0.3, max: 0.3 });
-        const hitWall = e.x < ARENA.pad + 20 || e.x > ARENA.w - ARENA.pad - 20 || e.y < ARENA.top || e.y > ARENA.h - ARENA.pad - 20;
+        const hitWall = e.x < ARENA.pad + 20 || e.x > ARENA.w - ARENA.pad - 20 || e.y < 60 || e.y > ARENA.h - ARENA.pad - 20 || (e.y < 330 && e.x > 860 && e.x < 1540);
         if (this.chargeLeft <= 0 || hitWall) {
           e.vx *= 0.2; e.vy *= 0.2;
           emitDust(e.x, e.y + 10, 16);
@@ -345,6 +347,7 @@ const Boss = {
     G.shots.clear(); G.telegraphs.length = 0; G.tolls.length = 0;
     addRing({ x: e.x, y: e.y, maxR: 900, speed: 420, dmg: 0, knock: 0, src: 'purge', purge: true, color: COLORS.gold, width: 3 });
     Director.moodTarget = -1;
+    G.gems.forEach(g => { g.state = 1; g.spd = 0; });
     Sfx.Music.stop();
     Sfx.play('victory');
     G.fx.push({ type: 'delay', t: 0.8, fn: () => Sfx.play('bell') });

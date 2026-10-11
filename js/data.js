@@ -30,7 +30,8 @@ const CHARACTERS = [
   {
     id: 'moonwitch', name: 'The Moonwitch', sprite: 'moonwitch', weapon: 'orbs',
     blurb: 'She stole the last light of the dying moon and keeps it close.',
-    perk: '+15% Area, +10% Duration, -15 Max HP.',
+    perk: 'Starts with Moonfire at level 2. +15% Area, +10% Duration, -15 Max HP.',
+    startLevel: 2,
     apply: s => { s.area *= 1.15; s.duration *= 1.1; s.maxHp -= 15; },
     unlock: 'elite',
   },
