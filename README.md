@@ -6,7 +6,9 @@ Pure HTML5 Canvas and Web Audio. No build step, no dependencies, no external ass
 
 ## Play
 
-Open `index.html` in a modern browser, or serve the folder:
+Online: **https://vexpaer.github.io/vampire/** (GitHub Pages, served straight from the repository root).
+
+Locally: open `index.html` in a modern browser, or serve the folder:
 
 ```
 npx http-server -p 8123 .
