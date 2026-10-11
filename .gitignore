@@ -1,0 +1,4 @@
+node_modules/
+playtest-out/
+*.log
+.DS_Store

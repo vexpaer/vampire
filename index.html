@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>The Last Bell</title>
+<meta name="description" content="A dark fantasy survivor roguelite. Hold the vigil for seven minutes beneath a dying moon, ring the Last Bell, and face the Hollow Archbishop.">
+<meta name="theme-color" content="#0d0b10">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="stage">
+  <canvas id="world" aria-label="Game view"></canvas>
+  <canvas id="ui" aria-hidden="true"></canvas>
+
+  <div id="banner" class="banner" hidden></div>
+  <div id="notice" class="notice" hidden></div>
+  <div id="bosscard" class="bosscard" hidden></div>
+  <div id="toasts" aria-live="polite"></div>
+
+  <section id="loading" class="screen">
+    <div class="loading-text">Tolling the bell…</div>
+  </section>
+
+  <section id="title" class="screen" hidden>
+    <div class="title-wrap">
+      <header class="logo">
+        <div class="logo-kicker">A vigil beneath a dying moon</div>
+        <h1>The Last Bell</h1>
+        <p class="tagline">Survive seven minutes in the ruined cathedral. Ring the bell. Answer the Archbishop.</p>
+      </header>
+      <div class="select">
+        <div class="chars" id="chars" role="listbox" aria-label="Choose your bearer"></div>
+        <div class="char-detail" id="char-detail"></div>
+      </div>
+      <div class="title-actions">
+        <button id="btn-start" class="btn primary">Begin the Vigil</button>
+        <button id="btn-ach" class="btn">Achievements</button>
+        <button id="btn-settings" class="btn">Settings</button>
+      </div>
+      <div class="records" id="records"></div>
+      <div class="legend">
+        <span><kbd>WASD</kbd> Move</span><span><kbd>Shift</kbd> Dash</span><span><kbd>Space</kbd> Ring the bell</span><span><kbd>Esc</kbd> Pause</span><span><kbd>M</kbd> Mute</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="levelup" class="screen overlay" hidden>
+    <div class="lu-head">
+      <div class="lu-kicker" id="lu-kicker">Level 2</div>
+      <h2 id="lu-title">Choose a Boon</h2>
+    </div>
+    <div class="cards" id="cards"></div>
+    <div class="lu-foot">
+      <button id="btn-reroll" class="btn small">Reroll (1)</button>
+      <span class="lu-hint" id="lu-hint"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> or click to choose · <kbd>R</kbd> reroll</span>
+    </div>
+  </section>
+
+  <section id="pause" class="screen overlay" hidden>
+    <div class="panel pause-panel">
+      <h2>Vigil Paused</h2>
+      <div class="pause-cols">
+        <div>
+          <h4>Your build</h4>
+          <div class="build" id="pause-build"></div>
+        </div>
+        <div>
+          <h4>Attributes</h4>
+          <div class="stat-grid" id="pause-stats"></div>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button id="btn-resume" class="btn primary">Resume</button>
+        <button id="btn-pause-settings" class="btn">Settings</button>
+        <button id="btn-restart" class="btn">Restart</button>
+        <button id="btn-quit" class="btn">Abandon Vigil</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="result" class="screen overlay" hidden>
+    <div class="panel result-panel">
+      <div class="result-kicker">The vigil ends</div>
+      <h2 id="result-title">The Bell Falls Silent</h2>
+      <p id="result-sub" class="result-sub"></p>
+      <div class="result-stats" id="result-stats"></div>
+      <div class="result-cols">
+        <div><h4>Final build</h4><div class="build compact" id="result-build"></div></div>
+        <div><h4>Damage dealt</h4><div class="dmg" id="result-dmg"></div></div>
+      </div>
+      <div class="result-unlocks" id="result-unlocks"></div>
+      <div class="panel-actions">
+        <button id="btn-again" class="btn primary">Ring Again</button>
+        <button id="btn-change" class="btn">Change Bearer</button>
+      </div>
+      <div class="lu-hint"><kbd>R</kbd> restart instantly · <kbd>Esc</kbd> title</div>
+    </div>
+  </section>
+
+  <section id="achievements" class="screen overlay" hidden>
+    <div class="panel">
+      <h2>Achievements</h2>
+      <div class="ach-list" id="ach-list"></div>
+      <div class="panel-actions"><button id="btn-ach-close" class="btn primary">Close</button></div>
+    </div>
+  </section>
+
+  <section id="settings" class="screen overlay" hidden>
+    <div class="panel settings-panel">
+      <h2>Settings</h2>
+      <label class="setting"><span>Master volume</span><input id="set-master" type="range" min="0" max="1" step="0.05"></label>
+      <label class="setting"><span>Music</span><input id="set-music" type="range" min="0" max="1" step="0.05"></label>
+      <label class="setting"><span>Sound effects</span><input id="set-sfx" type="range" min="0" max="1" step="0.05"></label>
+      <label class="setting"><span>Screen shake</span><input id="set-shake" type="range" min="0" max="1" step="0.1"></label>
+      <label class="setting check"><span>Damage numbers</span><input id="set-numbers" type="checkbox"></label>
+      <div class="panel-actions"><button id="btn-settings-close" class="btn primary">Done</button></div>
+    </div>
+  </section>
+
+  <div id="touch" hidden>
+    <div id="touch-stick"><div id="touch-knob"></div></div>
+    <button id="touch-dash" class="touch-btn">Dash</button>
+    <button id="touch-bell" class="touch-btn bell">Bell</button>
+    <button id="touch-pause" class="touch-btn pause" aria-label="Pause">II</button>
+  </div>
+</div>
+
+<script src="js/util.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/data.js"></script>
+<script src="js/world.js"></script>
+<script src="js/weapons.js"></script>
+<script src="js/game.js"></script>
+<script src="js/director.js"></script>
+<script src="js/boss.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
